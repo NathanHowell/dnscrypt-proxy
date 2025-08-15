@@ -6,7 +6,7 @@ RUN curl --silent -L https://github.com/DNSCrypt/dnscrypt-proxy/archive/2.1.3.ta
 WORKDIR /go/github.com/DNSCrypt/dnscrypt-proxy/dnscrypt-proxy
 RUN go install -ldflags "-s -w"
 
-FROM alpine:3.17@sha256:69665d02cb32192e52e07644d76bc6f25abeb5410edc1c7a81a10ba3f0efb90a
+FROM alpine:3.18@sha256:02bb6f428431fbc2809c5d1b41eab5a68350194fb508869a33cb1af4444c9b11
 RUN apk add --no-cache bind-tools
 COPY --from=build /go/bin/dnscrypt-proxy /usr/bin/
 COPY dnscrypt-proxy.toml /etc/dnscrypt-proxy/dnscrypt-proxy.toml
