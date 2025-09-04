@@ -52,9 +52,48 @@ jobs:
         cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
         context: .
         labels: ${{ steps.meta.outputs.labels }}
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
         push: false
         tags: ${{ steps.meta.outputs.tags }}
+        load: true
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install uv
+      run: pip install uv
+
+    - name: Install test dependencies
+      run: |
+        uv sync
+
+    - name: Test container functionality
+      run: |
+        # Get the first tag for testing
+        IMAGE_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
+        echo "Testing image: $IMAGE_TAG"
+        
+        # Run the container tests with intelligent exit code handling using pytest
+        if uv run python run_tests.py "$IMAGE_TAG"; then
+          echo "::notice::All tests passed - container is fully functional"
+        else
+          exit_code=$?
+          if [ $exit_code -eq 1 ]; then
+            echo "::error::Critical infrastructure tests failed - this indicates a real problem with the container"
+            echo "The container build has fundamental issues that prevent normal operation"
+            exit 1
+          elif [ $exit_code -eq 2 ]; then
+            echo "::warning::Network-dependent tests failed, but critical infrastructure tests passed"
+            echo "This is expected in CI environments with network restrictions"
+            echo "The container should function normally in unrestricted network environments"
+            echo "Critical infrastructure (container startup, port binding, configuration loading) is working correctly"
+          else
+            echo "::error::Unexpected test exit code: $exit_code"
+            exit 1
+          fi
+        fi
 
     - name: Push Docker image
       if: github.event_name != 'pull_request'

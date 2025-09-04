@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dnscrypt-proxy-tests"
+version = "1.0.0"
+description = "Test suite for dnscrypt-proxy Docker container"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pytest>=8.0.0",
+    "docker>=7.0.0",
+    "colorama>=0.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+python_classes = "Test*"
+addopts = [
+    "-v",
+    "--tb=short", 
+    "--color=yes",
+    "--strict-markers",
+    "--strict-config",
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+markers = [
+    "critical: marks tests as critical infrastructure tests",
+    "network: marks tests as network-dependent tests",
+]
+
+[tool.coverage.run]
+source = ["tests"]
+omit = ["tests/conftest.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+
+[tool.uv]
+dev-dependencies = []
