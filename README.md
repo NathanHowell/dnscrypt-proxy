@@ -15,22 +15,48 @@ dig @127.0.0.1 example.com
 
 ## Testing
 
-To test that the container starts correctly and accepts traffic:
+To test that the container starts correctly and accepts traffic, use the Python-based pytest test suite:
 
 ```bash
-# Test a pre-built image from Docker Hub
-./test-sanity.sh nathanhowell/dnscrypt-proxy:latest
+# Test a pre-built image from Docker Hub (recommended)
+python test_container.py nathanhowell/dnscrypt-proxy:latest
 
-# Test a locally built image  
-./test-container.sh  # Builds and tests the image
+# Build and test a local image
+python test_container.py --build
+
+# Alternative: use the compatibility wrapper scripts
+./test-sanity.py nathanhowell/dnscrypt-proxy:latest
 ```
 
-The sanity test validates:
-- Container starts and runs correctly
-- dnscrypt-proxy process is running
-- Ports are bound and listening
-- Configuration is loaded properly
-- Container would accept traffic in normal network conditions
+The test suite provides intelligent feedback with meaningful exit codes:
+- **Exit 0**: All tests passed (container fully functional)
+- **Exit 1**: Critical infrastructure failure (real container problems)
+- **Exit 2**: Network-dependent tests failed (expected in restricted environments)
+
+### Test Categories
+
+**Critical Infrastructure Tests** (must pass):
+- Container startup and stability
+- Port binding and host connectivity
+- Configuration file loading
+- No critical startup errors
+
+**Network-Dependent Tests** (may fail in restricted environments):
+- dnscrypt-proxy process health
+- DNS server resolution attempts
+- Upstream connection establishment
+- Health check status
+
+### Requirements
+
+Install test dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+Required system packages:
+- `docker` (for container management)
+- `dig` command (usually in `dnsutils` or `bind-utils` package)
 
 ## Configuration
 
