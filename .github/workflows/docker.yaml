@@ -55,6 +55,16 @@ jobs:
         platforms: linux/amd64,linux/arm64
         push: false
         tags: ${{ steps.meta.outputs.tags }}
+        load: true
+
+    - name: Test container functionality
+      run: |
+        # Get the first tag for testing
+        IMAGE_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
+        echo "Testing image: $IMAGE_TAG"
+        
+        # Run the container sanity test
+        ./test-sanity.sh "$IMAGE_TAG"
 
     - name: Push Docker image
       if: github.event_name != 'pull_request'

@@ -1,0 +1,7 @@
+# Temporary test files
+test-simple.sh
+*.tmp
+*.log
+
+# Docker build cache
+.buildx-cache/
