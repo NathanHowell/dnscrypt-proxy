@@ -7,7 +7,7 @@ name = "dnscrypt-proxy-tests"
 version = "1.0.0"
 description = "Test suite for dnscrypt-proxy Docker container"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "pytest>=8.0.0",
     "docker>=7.0.0",
@@ -19,6 +19,9 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-xdist>=3.0.0",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
