@@ -83,6 +83,37 @@ docker build -t dnscrypt-proxy .
 
 ## Validation and Testing
 
+### Automated Test Suite
+The repository uses a comprehensive pytest-based test suite with Python 3.13 and uv for package management:
+
+**Prerequisites:**
+- Python 3.13 or later
+- uv package manager
+- Docker (for running containers)
+
+**Running Tests:**
+```bash
+# Install dependencies with uv
+uv sync
+
+# Test any image (built or pre-built)
+uv run python run_tests.py nathanhowell/dnscrypt-proxy:latest
+
+# Build and test locally
+uv run python run_tests.py --build
+
+# Verbose test output
+uv run python run_tests.py --verbose
+```
+
+**Test Structure:**
+- **Critical Infrastructure Tests** (`@pytest.mark.critical`): Container startup, port binding, configuration loading
+- **Network-Dependent Tests** (`@pytest.mark.network`): DNS resolution, upstream connections
+- **Intelligent Exit Codes**:
+  - Exit 0: All tests passed (container fully functional)
+  - Exit 1: Critical infrastructure failure (real container problems that fail CI)
+  - Exit 2: Network-dependent tests failed (expected in restricted environments, warns but passes CI)
+
 ### Manual Testing Steps
 **CRITICAL**: Always test DNS functionality after making changes:
 
@@ -184,19 +215,33 @@ To update dnscrypt-proxy version:
 ### Making Changes
 1. **Always test locally first**:
 ```bash
+# Build and test with the automated test suite  
+uv run python run_tests.py --build
+
+# Or manually test the container
 docker build -t dnscrypt-proxy-test .
 docker run --rm -p 53:53/udp dnscrypt-proxy-test
 ```
 
-2. **Validate DNS functionality** using the manual testing steps above
+2. **Run the comprehensive test suite** to validate all functionality:
+```bash
+uv run python run_tests.py --verbose
+```
 
 3. **Check container logs** for errors or warnings
 
 4. **For configuration changes**: Compare with upstream example configuration to ensure compatibility
 
+### Test Development
+When adding new tests:
+1. Add tests to `tests/test_dnscrypt_proxy.py` 
+2. Use `@pytest.mark.critical` for infrastructure tests that must pass
+3. Use `@pytest.mark.network` for tests that may fail in restricted network environments
+4. Update `conftest.py` if new test fixtures are needed
+
 ### Release Process
 1. Changes pushed to master trigger automated Docker Hub builds
-2. GitHub releases create tagged versions
+2. GitHub releases create tagged versions  
 3. Multi-platform images are built and pushed automatically
 
-**Note**: This repository does NOT have traditional unit tests - validation is done through functional testing of the Docker container and DNS resolution.
+**Note**: This repository uses comprehensive pytest-based functional testing of the Docker container and DNS resolution, with intelligent CI feedback that distinguishes between critical infrastructure failures and expected network restrictions.
