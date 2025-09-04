@@ -26,8 +26,30 @@ def main():
                        help="Docker image name to test")
     parser.add_argument("--build", action="store_true",
                        help="Build the image before testing")
+    parser.add_argument("--dry-run", action="store_true",
+                       help="Validate test structure without running containers")
     
     args = parser.parse_args()
+    
+    if args.dry_run:
+        print("Running dry-run validation of test structure...")
+        try:
+            import test_dnscrypt_proxy
+            critical_class = test_dnscrypt_proxy.TestCriticalInfrastructure
+            network_class = test_dnscrypt_proxy.TestNetworkDependent
+            
+            critical_methods = [m for m in dir(critical_class) if m.startswith('test_')]
+            network_methods = [m for m in dir(network_class) if m.startswith('test_')]
+            
+            print(f"✓ Test module loaded successfully")
+            print(f"✓ Critical infrastructure tests: {len(critical_methods)}")
+            print(f"✓ Network-dependent tests: {len(network_methods)}")
+            print(f"✓ Total test methods: {len(critical_methods) + len(network_methods)}")
+            print("✓ Dry-run validation passed - test structure is valid")
+            return 0
+        except Exception as e:
+            print(f"✗ Dry-run validation failed: {e}")
+            return 1
     
     # Set environment variables for the test
     os.environ["TEST_IMAGE_NAME"] = args.image_name
@@ -77,4 +99,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
