@@ -63,11 +63,24 @@ jobs:
         IMAGE_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
         echo "Testing image: $IMAGE_TAG"
         
-        # Run the container sanity test (allow failure in restricted networks)
-        if ! ./test-sanity.sh "$IMAGE_TAG"; then
-          echo "::warning::Container test failed - this may be expected in restricted network environments"
-          echo "The container build was successful, but network restrictions prevent full validation"
-          echo "In unrestricted environments, the container should function normally"
+        # Run the container sanity test with smart exit code handling
+        if ./test-sanity.sh "$IMAGE_TAG"; then
+          echo "::notice::All tests passed - container is fully functional"
+        else
+          exit_code=$?
+          if [ $exit_code -eq 1 ]; then
+            echo "::error::Critical infrastructure tests failed - this indicates a real problem with the container"
+            echo "The container build has fundamental issues that prevent normal operation"
+            exit 1
+          elif [ $exit_code -eq 2 ]; then
+            echo "::warning::Network-dependent tests failed, but critical infrastructure tests passed"
+            echo "This is expected in CI environments with network restrictions"
+            echo "The container should function normally in unrestricted network environments"
+            echo "Critical infrastructure (container startup, port binding, configuration loading) is working correctly"
+          else
+            echo "::error::Unexpected test exit code: $exit_code"
+            exit 1
+          fi
         fi
 
     - name: Push Docker image
