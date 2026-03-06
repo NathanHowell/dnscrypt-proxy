@@ -3,11 +3,18 @@ updates:
 - package-ecosystem: docker
   directory: "/"
   schedule:
-    interval: daily
-    time: "13:00"
+    interval: monthly
   open-pull-requests-limit: 10
+  groups:
+    docker:
+      patterns:
+        - "*"
   # Maintain dependencies for GitHub Actions
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
-    interval: "daily"
+    interval: "monthly"
+  groups:
+    github-actions:
+      patterns:
+        - "*"
